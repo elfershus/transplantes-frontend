@@ -1,0 +1,155 @@
+<!--  -->
+<div class="compatibility-list-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Compatibility Matches</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Filters -->
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filters-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Organ ID</mat-label>
+              <input matInput formControlName="organId" type="number" placeholder="Filter by organ ID">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Receiver ID</mat-label>
+              <input matInput formControlName="receiverId" type="number" placeholder="Filter by receiver ID">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <div class="score-range-container">
+              <mat-form-field appearance="outline">
+                <mat-label>Min Score</mat-label>
+                <input matInput formControlName="minScore" type="number" min="0" max="100" placeholder="Min score">
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Max Score</mat-label>
+                <input matInput formControlName="maxScore" type="number" min="0" max="100" placeholder="Max score">
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div class="filter-actions">
+            <button mat-raised-button color="primary" (click)="resetFilters()">
+              <mat-icon>clear</mat-icon> Reset Filters
+            </button>
+          </div>
+        </form>
+        
+        <!-- Actions -->
+        <div class="table-actions">
+          <button mat-raised-button color="primary" routerLink="/compatibility/new">
+            <mat-icon>add</mat-icon> New Match
+          </button>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container" *ngIf="!isLoading">
+          <table mat-table [dataSource]="compatibilityRecords" class="mat-elevation-z2">
+            <!-- Organ Column -->
+            <ng-container matColumnDef="organ">
+              <th mat-header-cell *matHeaderCellDef>Organ</th>
+              <td mat-cell *matCellDef="let compatibility">
+                <a [routerLink]="['/organs', compatibility.organ?.id]" *ngIf="compatibility.organ">
+                  {{ getOrganName(compatibility) }}
+                </a>
+                <span *ngIf="!compatibility.organ">Unknown</span>
+              </td>
+            </ng-container>
+            
+            <!-- Receiver Column -->
+            <ng-container matColumnDef="receiver">
+              <th mat-header-cell *matHeaderCellDef>Receiver</th>
+              <td mat-cell *matCellDef="let compatibility">
+                <a [routerLink]="['/receivers', compatibility.receiver?.id]" *ngIf="compatibility.receiver">
+                  {{ getReceiverName(compatibility) }}
+                  <mat-icon *ngIf="compatibility.receiver?.urgencyStatus <= 2" 
+                            color="warn" 
+                            matBadgeSize="small" 
+                            class="urgency-icon">
+                    priority_high
+                  </mat-icon>
+                </a>
+                <span *ngIf="!compatibility.receiver">Unknown</span>
+              </td>
+            </ng-container>
+            
+            <!-- Score Column -->
+            <ng-container matColumnDef="score">
+              <th mat-header-cell *matHeaderCellDef>Match Score</th>
+              <td mat-cell *matCellDef="let compatibility" class="{{ getScoreClass(compatibility.compatibilityScore) }}">
+                {{ compatibility.compatibilityScore.toFixed(1) }}%
+              </td>
+            </ng-container>
+            
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let compatibility">
+                <mat-chip-option [color]="getStatusColor(compatibility.status)" selected>
+                  {{ compatibility.status | titlecase }}
+                </mat-chip-option>
+              </td>
+            </ng-container>
+            
+            <!-- Match Date Column -->
+            <ng-container matColumnDef="matchDate">
+              <th mat-header-cell *matHeaderCellDef>Match Date</th>
+              <td mat-cell *matCellDef="let compatibility">{{ compatibility.matchDate | date:'short' }}</td>
+            </ng-container>
+            
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let compatibility">
+                <button mat-icon-button color="primary" [routerLink]="['/compatibility', compatibility.id]">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" [routerLink]="['/compatibility', compatibility.id, 'edit']">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteCompatibilityRecord(compatibility)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          
+          <!-- No data row -->
+          <div *ngIf="compatibilityRecords.length === 0" class="no-data-row">
+            No compatibility records found.
+          </div>
+          
+          <!-- Paginator -->
+          <mat-paginator
+            [length]="totalItems"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="pageIndex"
+            (page)="onPageChange($event)">
+          </mat-paginator>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>

@@ -1,0 +1,176 @@
+<!-- -->
+<div class="transportation-list-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Transportation Records</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Filters -->
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filters-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Organ ID</mat-label>
+              <input matInput formControlName="organId" type="number" placeholder="Filter by organ ID">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Transport Method</mat-label>
+              <mat-select formControlName="transportMethod">
+                <mat-option value="">All Methods</mat-option>
+                <mat-option *ngFor="let method of transportMethods" [value]="method">
+                  {{ method | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Origin Institution ID</mat-label>
+              <input matInput formControlName="originInstitutionId" type="number" placeholder="Filter by origin">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Destination Institution ID</mat-label>
+              <input matInput formControlName="destinationInstitutionId" type="number" placeholder="Filter by destination">
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-actions">
+            <button mat-raised-button color="primary" (click)="resetFilters()">
+              <mat-icon>clear</mat-icon> Reset Filters
+            </button>
+          </div>
+        </form>
+        
+        <!-- Actions -->
+        <div class="table-actions">
+          <button mat-raised-button color="primary" routerLink="/transportation/new">
+            <mat-icon>add</mat-icon> New Transportation
+          </button>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container" *ngIf="!isLoading">
+          <table mat-table [dataSource]="transportations" class="mat-elevation-z2">
+            <!-- Organ Column -->
+            <ng-container matColumnDef="organ">
+              <th mat-header-cell *matHeaderCellDef>Organ</th>
+              <td mat-cell *matCellDef="let transportation">
+                <a [routerLink]="['/organs', transportation.organ?.id]" *ngIf="transportation.organ">
+                  {{ getOrganName(transportation) }}
+                </a>
+                <span *ngIf="!transportation.organ">Unknown</span>
+              </td>
+            </ng-container>
+            
+            <!-- Origin Column -->
+            <ng-container matColumnDef="origin">
+              <th mat-header-cell *matHeaderCellDef>Origin</th>
+              <td mat-cell *matCellDef="let transportation">
+                <a [routerLink]="['/institutions', transportation.originInstitution?.id]" *ngIf="transportation.originInstitution">
+                  {{ getInstitutionName(transportation.originInstitution) }}
+                </a>
+                <span *ngIf="!transportation.originInstitution">Unknown</span>
+              </td>
+            </ng-container>
+            
+            <!-- Destination Column -->
+            <ng-container matColumnDef="destination">
+              <th mat-header-cell *matHeaderCellDef>Destination</th>
+              <td mat-cell *matCellDef="let transportation">
+                <a [routerLink]="['/institutions', transportation.destinationInstitution?.id]" *ngIf="transportation.destinationInstitution">
+                  {{ getInstitutionName(transportation.destinationInstitution) }}
+                </a>
+                <span *ngIf="!transportation.destinationInstitution">Unknown</span>
+              </td>
+            </ng-container>
+            
+            <!-- Departure Column -->
+            <ng-container matColumnDef="departure">
+              <th mat-header-cell *matHeaderCellDef>Departure</th>
+              <td mat-cell *matCellDef="let transportation">{{ transportation.departureTime | date:'short' }}</td>
+            </ng-container>
+            
+            <!-- Arrival Column -->
+            <ng-container matColumnDef="arrival">
+              <th mat-header-cell *matHeaderCellDef>Estimated Arrival</th>
+              <td mat-cell *matCellDef="let transportation" [class.overdue]="isOverdue(transportation)">
+                {{ transportation.estimatedArrivalTime | date:'short' }}
+                <span *ngIf="transportation.actualArrivalTime && transportation.status === 'delivered'">
+                  (Arrived: {{ transportation.actualArrivalTime | date:'short' }})
+                </span>
+              </td>
+            </ng-container>
+            
+            <!-- Method Column -->
+            <ng-container matColumnDef="method">
+              <th mat-header-cell *matHeaderCellDef>Method</th>
+              <td mat-cell *matCellDef="let transportation">
+                <mat-icon [matTooltip]="transportation.transportMethod | titlecase">
+                  {{ getTransportMethodIcon(transportation.transportMethod) }}
+                </mat-icon>
+              </td>
+            </ng-container>
+            
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let transportation">
+                <mat-chip-option [color]="getStatusColor(transportation.status)" selected>
+                  {{ transportation.status | titlecase }}
+                </mat-chip-option>
+              </td>
+            </ng-container>
+            
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let transportation">
+                <button mat-icon-button color="primary" [routerLink]="['/transportation', transportation.id]">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" [routerLink]="['/transportation', transportation.id, 'edit']">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteTransportation(transportation)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          
+          <!-- No data row -->
+          <div *ngIf="transportations.length === 0" class="no-data-row">
+            No transportation records found.
+          </div>
+          
+          <!-- Paginator -->
+          <mat-paginator
+            [length]="totalItems"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="pageIndex"
+            (page)="onPageChange($event)">
+          </mat-paginator>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>

@@ -1,0 +1,63 @@
+/* src/app/features/doctors/doctor-detail/doctor-detail.component.scss */
+.doctor-detail-container {
+    padding: 16px;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  
+  .header-title h1 {
+    margin: 0;
+    color: #3f51b5;
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+  }
+  
+  .error-container {
+    text-align: center;
+    padding: 24px;
+  }
+  
+  .tab-content {
+    padding: 16px;
+  }
+  
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+  .detail-item {
+    margin-bottom: 16px;
+  }
+  
+  .detail-label {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.54);
+    margin-bottom: 4px;
+  }
+  
+  .detail-value {
+    font-size: 16px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: rgba(0, 0, 0, 0.54);
+  }

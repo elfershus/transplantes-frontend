@@ -1,0 +1,54 @@
+/* src/app/features/receivers/receiver-form/receiver-form.component.scss */
+.receiver-form-container {
+    padding: 16px;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .full-width {
+    grid-column: 1 / -1;
+  }
+  
+  h3 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    color: rgba(0, 0, 0, 0.7);
+    font-weight: 500;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    gap: 16px;
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+  }
+  
+  button[type="submit"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  button[type="submit"] mat-spinner {
+    margin-left: 8px;
+  }
+  
+  mat-expansion-panel {
+    margin-top: 24px;
+  }

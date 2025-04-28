@@ -1,0 +1,113 @@
+<!-- src/app/features/doctors/doctor-detail/doctor-detail.component.html -->
+<div class="doctor-detail-container">
+    <div class="page-header">
+      <div class="header-title">
+        <h1 *ngIf="doctor">{{ doctor.firstName }} {{ doctor.lastName }}</h1>
+        <h1 *ngIf="!doctor && !isLoading">Doctor Details</h1>
+      </div>
+      <div class="header-actions">
+        <button mat-button routerLink="/doctors">
+          <mat-icon>arrow_back</mat-icon> Back to List
+        </button>
+        <button 
+          mat-raised-button 
+          color="accent" 
+          [routerLink]="['/doctors', doctor?.id, 'edit']" 
+          *ngIf="doctor">
+          <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button 
+          mat-raised-button 
+          color="warn" 
+          (click)="deleteDoctor()" 
+          *ngIf="doctor">
+          <mat-icon>delete</mat-icon> Delete
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+    
+    <div *ngIf="error" class="error-container">
+      <mat-card>
+        <mat-card-content>
+          <p>Failed to load doctor details. Please try again later.</p>
+          <button mat-raised-button color="primary" (click)="loadDoctor(doctor?.id || 0)">Retry</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    
+    <div *ngIf="doctor && !isLoading" class="doctor-details">
+      <mat-card>
+        <mat-card-content>
+          <mat-tab-group>
+            <!-- Basic Info Tab -->
+            <mat-tab label="Basic Info">
+              <div class="tab-content">
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <div class="detail-label">First Name</div>
+                    <div class="detail-value">{{ doctor.firstName }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Last Name</div>
+                    <div class="detail-value">{{ doctor.lastName }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Specialty</div>
+                    <div class="detail-value">{{ doctor.specialty }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">License Number</div>
+                    <div class="detail-value">{{ doctor.licenseNumber }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">{{ doctor.email }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-value">{{ doctor.phone || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Institutions Tab -->
+            <mat-tab label="Institutions">
+              <div class="tab-content">
+                <div *ngIf="!doctor.institutions?.length" class="empty-state">
+                  <p>This doctor is not associated with any institutions.</p>
+                </div>
+                
+                <mat-list *ngIf="doctor.institutions?.length">
+                  <div mat-subheader>Associated Institutions</div>
+                  <mat-list-item *ngFor="let institution of doctor.institutions">
+                    <mat-icon matListItemIcon>business</mat-icon>
+                    <div matListItemTitle>{{ institution.name }}</div>
+                    <div matListItemLine>License: {{ institution.licenseNumber }}</div>
+                  </mat-list-item>
+                </mat-list>
+              </div>
+            </mat-tab>
+            
+            <!-- Activity Tab -->
+            <mat-tab label="Activity">
+              <div class="tab-content">
+                <div class="empty-state">
+                  <p>Activity tracking coming soon.</p>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>

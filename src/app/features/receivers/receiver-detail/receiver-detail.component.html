@@ -1,0 +1,223 @@
+<!-- src/app/features/receivers/receiver-detail/receiver-detail.component.html -->
+<div class="receiver-detail-container">
+    <div class="page-header">
+      <div class="header-title">
+        <h1 *ngIf="receiver">{{ receiver.firstName }} {{ receiver.lastName }}</h1>
+        <h1 *ngIf="!receiver && !isLoading">Receiver Details</h1>
+      </div>
+      <div class="header-actions">
+        <button mat-button routerLink="/receivers">
+          <mat-icon>arrow_back</mat-icon> Back to List
+        </button>
+        <button 
+          mat-raised-button 
+          color="accent" 
+          [routerLink]="['/receivers', receiver?.id, 'edit']" 
+          *ngIf="receiver">
+          <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button 
+          mat-raised-button 
+          color="warn" 
+          (click)="deleteReceiver()" 
+          *ngIf="receiver">
+          <mat-icon>delete</mat-icon> Delete
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+    
+    <div *ngIf="error" class="error-container">
+      <mat-card>
+        <mat-card-content>
+          <p>Failed to load receiver details. Please try again later.</p>
+          <button mat-raised-button color="primary" (click)="loadReceiver(receiver?.id || 0)">Retry</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    
+    <div *ngIf="receiver && !isLoading" class="receiver-details">
+      <!-- Status banner at the top -->
+      <div class="status-banner" [ngClass]="'status-' + receiver.status">
+        <div class="status-info">
+          <div class="status-label">Status:</div>
+          <div class="status-value">
+            <mat-chip-option [color]="getStatusColor(receiver.status)" selected>
+              {{ receiver.status | titlecase }}
+            </mat-chip-option>
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Urgency:</div>
+          <div class="status-value">
+            <mat-chip-option [color]="getUrgencyColor(receiver.urgencyStatus)" selected>
+              {{ receiver.urgencyStatus }} - {{ urgencyLevels[receiver.urgencyStatus] }}
+            </mat-chip-option>
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Waiting Since:</div>
+          <div class="status-value">{{ receiver.registrationDate | date:'mediumDate' }}</div>
+        </div>
+      </div>
+      
+      <mat-card>
+        <mat-card-content>
+          <mat-tab-group>
+            <!-- Basic Info Tab -->
+            <mat-tab label="Personal Information">
+              <div class="tab-content">
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <div class="detail-label">First Name</div>
+                    <div class="detail-value">{{ receiver.firstName }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Last Name</div>
+                    <div class="detail-value">{{ receiver.lastName }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Date of Birth</div>
+                    <div class="detail-value">{{ receiver.dateOfBirth | date:'mediumDate' }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Age</div>
+                    <div class="detail-value">{{ calculateAge(receiver.dateOfBirth) }} years</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Gender</div>
+                    <div class="detail-value">{{ receiver.gender }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Blood Type</div>
+                    <div class="detail-value">{{ receiver.bloodType }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">HLA Type</div>
+                    <div class="detail-value">{{ receiver.hlaType || 'Not specified' }}</div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Medical History Tab -->
+            <mat-tab label="Medical History">
+              <div class="tab-content">
+                <div *ngIf="!receiver.clinicHistory" class="empty-state">
+                  <p>No clinical history recorded for this receiver.</p>
+                </div>
+                
+                <div *ngIf="receiver.clinicHistory" class="clinical-history">
+                  <div class="history-section">
+                    <h3>Medical History</h3>
+                    <p *ngIf="receiver.clinicHistory.medicalHistory">{{ receiver.clinicHistory.medicalHistory }}</p>
+                    <p *ngIf="!receiver.clinicHistory.medicalHistory" class="not-provided">Not provided</p>
+                  </div>
+                  
+                  <mat-divider></mat-divider>
+                  
+                  <div class="history-section">
+                    <h3>Allergies</h3>
+                    <p *ngIf="receiver.clinicHistory.allergies">{{ receiver.clinicHistory.allergies }}</p>
+                    <p *ngIf="!receiver.clinicHistory.allergies" class="not-provided">No known allergies</p>
+                  </div>
+                  
+                  <mat-divider></mat-divider>
+                  
+                  <div class="history-section">
+                    <h3>Current Medications</h3>
+                    <p *ngIf="receiver.clinicHistory.currentMedications">{{ receiver.clinicHistory.currentMedications }}</p>
+                    <p *ngIf="!receiver.clinicHistory.currentMedications" class="not-provided">No current medications recorded</p>
+                  </div>
+                  
+                  <mat-divider></mat-divider>
+                  
+                  <div class="history-section">
+                    <h3>Previous Surgeries</h3>
+                    <p *ngIf="receiver.clinicHistory.previousSurgeries">{{ receiver.clinicHistory.previousSurgeries }}</p>
+                    <p *ngIf="!receiver.clinicHistory.previousSurgeries" class="not-provided">No previous surgeries recorded</p>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Compatibility Matches Tab -->
+            <mat-tab label="Potential Matches">
+              <div class="tab-content">
+                <div *ngIf="!receiver.compatibilities?.length" class="empty-state">
+                  <p>No potential matches found for this receiver.</p>
+                </div>
+                
+                <div *ngIf="receiver.compatibilities?.length">
+                  <table mat-table [dataSource]="receiver.compatibilities" class="mat-elevation-z0">
+                    <!-- Organ Column -->
+                    <ng-container matColumnDef="organ">
+                      <th mat-header-cell *matHeaderCellDef>Organ</th>
+                      <td mat-cell *matCellDef="let match">
+                        {{ match.organ?.type || 'Unknown' }}
+                        ({{ match.organ?.donor?.bloodType || 'Unknown' }})
+                      </td>
+                    </ng-container>
+                    
+                    <!-- Score Column -->
+                    <ng-container matColumnDef="score">
+                      <th mat-header-cell *matHeaderCellDef>Compatibility Score</th>
+                      <td mat-cell *matCellDef="let match" class="{{ getCompatibilityScoreClass(match.compatibilityScore) }}">
+                        {{ match.compatibilityScore.toFixed(1) }}%
+                      </td>
+                    </ng-container>
+                    
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let match">
+                        <mat-chip-option 
+                          [color]="match.status === 'confirmed' ? 'primary' : match.status === 'rejected' ? 'warn' : ''" 
+                          selected>
+                          {{ match.status | titlecase }}
+                        </mat-chip-option>
+                      </td>
+                    </ng-container>
+                    
+                    <!-- Date Column -->
+                    <ng-container matColumnDef="date">
+                      <th mat-header-cell *matHeaderCellDef>Match Date</th>
+                      <td mat-cell *matCellDef="let match">{{ match.matchDate | date:'medium' }}</td>
+                    </ng-container>
+                    
+                    <tr mat-header-row *matHeaderRowDef="matchesColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: matchesColumns;"></tr>
+                  </table>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Transplant History Tab -->
+            <mat-tab label="Transplant History">
+              <div class="tab-content">
+                <div *ngIf="!receiver.procedures?.length" class="empty-state">
+                  <p>No transplant procedures recorded for this receiver.</p>
+                </div>
+                
+                <div *ngIf="receiver.procedures?.length">
+                  <!-- Transplant history display implementation would go here -->
+                  <p>Transplant history details would be displayed here.</p>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>

@@ -1,0 +1,209 @@
+<!--  -->
+<div class="compatibility-detail-container">
+    <div class="page-header">
+      <div class="header-title">
+        <h1>Compatibility Match Details</h1>
+      </div>
+      <div class="header-actions">
+        <button mat-button routerLink="/compatibility">
+          <mat-icon>arrow_back</mat-icon> Back to List
+        </button>
+        <button 
+          mat-raised-button 
+          color="accent" 
+          [routerLink]="['/compatibility', compatibility?.id, 'edit']" 
+          *ngIf="compatibility">
+          <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button 
+          mat-raised-button 
+          color="warn" 
+          (click)="deleteCompatibilityRecord()" 
+          *ngIf="compatibility">
+          <mat-icon>delete</mat-icon> Delete
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+    
+    <div *ngIf="error" class="error-container">
+      <mat-card>
+        <mat-card-content>
+          <p>Failed to load compatibility record. Please try again later.</p>
+          <button mat-raised-button color="primary" (click)="loadCompatibilityRecord(compatibility?.id || 0)">Retry</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    
+    <div *ngIf="compatibility && !isLoading" class="compatibility-details">
+      <!-- Status banner at the top -->
+      <div class="status-banner" [ngClass]="'status-' + compatibility.status">
+        <div class="status-info">
+          <div class="status-label">Status:</div>
+          <div class="status-value">
+            <mat-chip-option [color]="getStatusColor(compatibility.status)" selected>
+              {{ compatibility.status | titlecase }}
+            </mat-chip-option>
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Match Score:</div>
+          <div class="status-value {{ getScoreClass(compatibility.compatibilityScore) }}">
+            {{ compatibility.compatibilityScore.toFixed(1) }}%
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Match Date:</div>
+          <div class="status-value">{{ compatibility.matchDate | date:'medium' }}</div>
+        </div>
+      </div>
+      
+      <div class="cards-container">
+        <!-- Organ Card -->
+        <mat-card class="detail-card">
+          <mat-card-header>
+            <div mat-card-avatar>
+              <mat-icon>favorite</mat-icon>
+            </div>
+            <mat-card-title>Organ Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="compatibility.organ">
+              <div class="detail-item">
+                <div class="detail-label">Type</div>
+                <div class="detail-value">{{ compatibility.organ.type | titlecase }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Condition</div>
+                <div class="detail-value">{{ compatibility.organ.condition | titlecase }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Retrieval Date</div>
+                <div class="detail-value">{{ compatibility.organ.retrievalDate | date }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Expiration Date</div>
+                <div class="detail-value">{{ compatibility.organ.expirationDate | date:'medium' }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Donor</div>
+                <div class="detail-value">
+                  <a [routerLink]="['/donors', compatibility.organ.donor?.id]" *ngIf="compatibility.organ.donor">
+                    {{ compatibility.organ.donor.firstName }} {{ compatibility.organ.donor.lastName }}
+                    ({{ compatibility.organ.donor.bloodType }})
+                  </a>
+                  <span *ngIf="!compatibility.organ.donor">Unknown</span>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!compatibility.organ" class="no-data">
+              <p>No organ information available</p>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button [routerLink]="['/organs', compatibility.organ?.id]" *ngIf="compatibility.organ">
+              View Organ Details
+            </button>
+          </mat-card-actions>
+        </mat-card>
+        
+        <!-- Receiver Card -->
+        <mat-card class="detail-card">
+          <mat-card-header>
+            <div mat-card-avatar>
+              <mat-icon>person</mat-icon>
+            </div>
+            <mat-card-title>Receiver Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="compatibility.receiver">
+              <div class="detail-item">
+                <div class="detail-label">Name</div>
+                <div class="detail-value">{{ compatibility.receiver.firstName }} {{ compatibility.receiver.lastName }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Blood Type</div>
+                <div class="detail-value">{{ compatibility.receiver.bloodType }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Urgency Status</div>
+                <div class="detail-value" [ngClass]="getUrgencyClass(compatibility.receiver.urgencyStatus)">
+                  {{ compatibility.receiver.urgencyStatus }} - 
+                  {{ compatibility.receiver.urgencyStatus === 1 ? 'Critical' : 
+                     compatibility.receiver.urgencyStatus === 2 ? 'Urgent' : 
+                     compatibility.receiver.urgencyStatus === 3 ? 'Standard' : 
+                     compatibility.receiver.urgencyStatus === 4 ? 'Stable' : 'Low Priority' }}
+                </div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Registration Date</div>
+                <div class="detail-value">{{ compatibility.receiver.registrationDate | date }}</div>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="detail-item">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">{{ compatibility.receiver.status | titlecase }}</div>
+              </div>
+            </div>
+            
+            <div *ngIf="!compatibility.receiver" class="no-data">
+              <p>No receiver information available</p>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button [routerLink]="['/receivers', compatibility.receiver?.id]" *ngIf="compatibility.receiver">
+              View Receiver Details
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+      
+      <!-- Notes Section -->
+      <mat-card class="notes-card">
+        <mat-card-header>
+          <mat-card-title>Notes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p *ngIf="compatibility.notes">{{ compatibility.notes }}</p>
+          <p *ngIf="!compatibility.notes" class="no-data">No notes available for this match.</p>
+        </mat-card-content>
+      </mat-card>
+      
+      <!-- Action Button for Confirmed Matches -->
+      <div *ngIf="compatibility.status === 'confirmed'" class="action-section">
+        <button mat-raised-button color="primary" (click)="proceedToTransplant()">
+          <mat-icon>medical_services</mat-icon>
+          Proceed to Transplant Procedure
+        </button>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,109 @@
+<!-- src/app/features/organs/organ-form/organ-form.component.html -->
+<div class="organ-form-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ isEditing ? 'Edit Organ' : 'Add Organ' }}</mat-card-title>
+      </mat-card-header>
+      
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+      
+      <mat-card-content *ngIf="!isLoading">
+        <form [formGroup]="organForm" (ngSubmit)="onSubmit()" class="form">
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Donor</mat-label>
+              <mat-select formControlName="donorId">
+                <mat-option *ngFor="let donor of donors" [value]="donor.id">
+                  {{ getDonorName(donor) }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="organForm.get('donorId')?.hasError('required')">
+                Donor is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Organ Type</mat-label>
+              <mat-select formControlName="type" (selectionChange)="onRetrievalDateChange()">
+                <mat-option *ngFor="let type of organTypes" [value]="type">
+                  {{ type | titlecase }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="organForm.get('type')?.hasError('required')">
+                Organ type is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Retrieval Date</mat-label>
+              <input matInput [matDatepicker]="retrievalPicker" formControlName="retrievalDate" (dateChange)="onRetrievalDateChange()">
+              <mat-datepicker-toggle matSuffix [for]="retrievalPicker"></mat-datepicker-toggle>
+              <mat-datepicker #retrievalPicker></mat-datepicker>
+              <mat-error *ngIf="organForm.get('retrievalDate')?.hasError('required')">
+                Retrieval date is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Expiration Date</mat-label>
+              <input matInput [matDatepicker]="expirationPicker" formControlName="expirationDate">
+              <mat-datepicker-toggle matSuffix [for]="expirationPicker"></mat-datepicker-toggle>
+              <mat-datepicker #expirationPicker></mat-datepicker>
+              <mat-error *ngIf="organForm.get('expirationDate')?.hasError('required')">
+                Expiration date is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Condition</mat-label>
+              <mat-select formControlName="condition">
+                <mat-option *ngFor="let condition of conditions" [value]="condition">
+                  {{ condition | titlecase }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="organForm.get('condition')?.hasError('required')">
+                Condition is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="organForm.get('status')?.hasError('required')">
+                Status is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Storage Location</mat-label>
+              <input matInput formControlName="storageLocation" placeholder="Enter storage location">
+            </mat-form-field>
+          </div>
+          
+          <div class="form-actions">
+            <button mat-button type="button" (click)="cancel()">Cancel</button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="organForm.invalid || isSaving">
+              {{ isEditing ? 'Update' : 'Create' }}
+              <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>

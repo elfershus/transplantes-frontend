@@ -1,0 +1,173 @@
+<!-- src/app/features/receivers/receiver-form/receiver-form.component.html -->
+<div class="receiver-form-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ isEditing ? 'Edit Receiver' : 'Add Receiver' }}</mat-card-title>
+      </mat-card-header>
+      
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+      
+      <mat-card-content *ngIf="!isLoading">
+        <form [formGroup]="receiverForm" (ngSubmit)="onSubmit()" class="form">
+          <h3>Basic Information</h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="Enter first name">
+              <mat-error *ngIf="receiverForm.get('firstName')?.hasError('required')">
+                First name is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Enter last name">
+              <mat-error *ngIf="receiverForm.get('lastName')?.hasError('required')">
+                Last name is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="dobPicker" formControlName="dateOfBirth">
+              <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+              <mat-error *ngIf="receiverForm.get('dateOfBirth')?.hasError('required')">
+                Date of birth is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                <mat-option *ngFor="let gender of genders" [value]="gender">
+                  {{ gender }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="receiverForm.get('gender')?.hasError('required')">
+                Gender is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <h3>Medical Information</h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Blood Type</mat-label>
+              <mat-select formControlName="bloodType">
+                <mat-option *ngFor="let type of bloodTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="receiverForm.get('bloodType')?.hasError('required')">
+                Blood type is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>HLA Type</mat-label>
+              <input matInput formControlName="hlaType" placeholder="Enter HLA type">
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Urgency Status</mat-label>
+              <mat-select formControlName="urgencyStatus">
+                <mat-option *ngFor="let level of urgencyLevels" [value]="level">
+                  {{ level }} - {{ level === 1 ? 'Critical' : level === 2 ? 'Urgent' : level === 3 ? 'Standard' : level === 4 ? 'Stable' : 'Low Priority' }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="receiverForm.get('urgencyStatus')?.hasError('required')">
+                Urgency status is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="receiverForm.get('status')?.hasError('required')">
+                Status is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Registration Date</mat-label>
+              <input matInput [matDatepicker]="regPicker" formControlName="registrationDate">
+              <mat-datepicker-toggle matSuffix [for]="regPicker"></mat-datepicker-toggle>
+              <mat-datepicker #regPicker></mat-datepicker>
+              <mat-error *ngIf="receiverForm.get('registrationDate')?.hasError('required')">
+                Registration date is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <!-- Clinical History Section -->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Clinical History
+              </mat-panel-title>
+              <mat-panel-description>
+                Additional medical information
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            
+            <form [formGroup]="clinicHistoryForm">
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Medical History</mat-label>
+                  <textarea matInput formControlName="medicalHistory" rows="4" placeholder="Enter medical history"></textarea>
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Allergies</mat-label>
+                  <textarea matInput formControlName="allergies" rows="3" placeholder="Enter allergies"></textarea>
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Current Medications</mat-label>
+                  <textarea matInput formControlName="currentMedications" rows="3" placeholder="Enter current medications"></textarea>
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Previous Surgeries</mat-label>
+                  <textarea matInput formControlName="previousSurgeries" rows="3" placeholder="Enter previous surgeries"></textarea>
+                </mat-form-field>
+              </div>
+            </form>
+          </mat-expansion-panel>
+          
+          <div class="form-actions">
+            <button mat-button type="button" (click)="cancel()">Cancel</button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="receiverForm.invalid || isSaving">
+              {{ isEditing ? 'Update' : 'Create' }}
+              <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>

@@ -1,0 +1,188 @@
+<!-- src/app/features/organs/organ-detail/organ-detail.component.html -->
+<div class="organ-detail-container">
+    <div class="page-header">
+      <div class="header-title">
+        <h1 *ngIf="organ">{{ organ.type | titlecase }} Organ Details</h1>
+        <h1 *ngIf="!organ && !isLoading">Organ Details</h1>
+      </div>
+      <div class="header-actions">
+        <button mat-button routerLink="/organs">
+          <mat-icon>arrow_back</mat-icon> Back to List
+        </button>
+        <button 
+          mat-raised-button 
+          color="accent" 
+          [routerLink]="['/organs', organ?.id, 'edit']" 
+          *ngIf="organ">
+          <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button 
+          mat-raised-button 
+          color="warn" 
+          (click)="deleteOrgan()" 
+          *ngIf="organ">
+          <mat-icon>delete</mat-icon> Delete
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+    
+    <div *ngIf="error" class="error-container">
+      <mat-card>
+        <mat-card-content>
+          <p>Failed to load organ details. Please try again later.</p>
+          <button mat-raised-button color="primary" (click)="loadOrgan(organ?.id || 0)">Retry</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    
+    <div *ngIf="organ && !isLoading" class="organ-details">
+      <!-- Status banner at the top -->
+      <div class="status-banner" [ngClass]="'status-' + organ.status">
+        <div class="status-info">
+          <div class="status-label">Status:</div>
+          <div class="status-value">
+            <mat-chip-option [color]="getStatusColor(organ.status)" selected>
+              {{ organ.status | titlecase }}
+            </mat-chip-option>
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Condition:</div>
+          <div class="status-value">
+            <mat-chip-option [color]="getConditionColor(organ.condition)" selected>
+              {{ organ.condition | titlecase }}
+            </mat-chip-option>
+          </div>
+        </div>
+        
+        <div class="status-info">
+          <div class="status-label">Time Remaining:</div>
+          <div class="status-value" [class.expiring-soon]="isExpiringSoon(organ.expirationDate)">
+            {{ getRemainingTime(organ.expirationDate) }}
+          </div>
+        </div>
+      </div>
+      
+      <mat-card>
+        <mat-card-content>
+          <mat-tab-group>
+            <!-- Basic Info Tab -->
+            <mat-tab label="Organ Information">
+              <div class="tab-content">
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <div class="detail-label">Organ Type</div>
+                    <div class="detail-value">{{ organ.type | titlecase }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Donor</div>
+                    <div class="detail-value">
+                      <a [routerLink]="['/donors', organ.donor?.id]" *ngIf="organ.donor">
+                        {{ getDonorName(organ) }} ({{ organ.donor.bloodType }})
+                      </a>
+                      <span *ngIf="!organ.donor">Unknown</span>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Retrieval Date</div>
+                    <div class="detail-value">{{ organ.retrievalDate | date:'medium' }}</div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Expiration Date</div>
+                    <div class="detail-value" [class.expiring-soon]="isExpiringSoon(organ.expirationDate)">
+                      {{ organ.expirationDate | date:'medium' }}
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">Storage Location</div>
+                    <div class="detail-value">{{ organ.storageLocation || 'Not specified' }}</div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Compatibility Matches Tab -->
+            <mat-tab label="Potential Matches">
+              <div class="tab-content">
+                <div *ngIf="!organ.compatibilities?.length" class="empty-state">
+                  <p>No potential matches found for this organ.</p>
+                </div>
+                
+                <div *ngIf="organ.compatibilities?.length" class="matches-list">
+                  <mat-list>
+                    <div mat-subheader>Potential Recipients</div>
+                    
+                    <mat-list-item *ngFor="let match of organ.compatibilities">
+                      <mat-icon matListItemIcon>person</mat-icon>
+                      <div matListItemTitle>
+                        <a [routerLink]="['/receivers', match.receiver?.id]" *ngIf="match.receiver">
+                          {{ match.receiver.firstName }} {{ match.receiver.lastName }}
+                        </a>
+                      </div>
+                      <div matListItemLine>
+                        Blood Type: {{ match.receiver?.bloodType }} | 
+                        Urgency: {{ match.receiver?.urgencyStatus }} |
+                        Match Score: <span [class]="getCompatibilityScoreClass(match.compatibilityScore)">
+                          {{ match.compatibilityScore.toFixed(1) }}%
+                        </span>
+                      </div>
+                      <div matListItemMeta>
+                        <mat-chip-option 
+                          [color]="match.status === 'confirmed' ? 'primary' : match.status === 'rejected' ? 'warn' : ''" 
+                          selected>
+                          {{ match.status | titlecase }}
+                        </mat-chip-option>
+                      </div>
+                    </mat-list-item>
+                  </mat-list>
+                </div>
+              </div>
+            </mat-tab>
+            
+            <!-- Transportation History Tab -->
+            <mat-tab label="Transportation History">
+              <div class="tab-content">
+                <div *ngIf="!organ.transportations?.length" class="empty-state">
+                  <p>No transportation records found for this organ.</p>
+                </div>
+                
+                <div *ngIf="organ.transportations?.length" class="transportation-history">
+                  <mat-list>
+                    <div mat-subheader>Transportation Records</div>
+                    
+                    <mat-list-item *ngFor="let transport of organ.transportations">
+                      <mat-icon matListItemIcon>local_shipping</mat-icon>
+                      <div matListItemTitle>
+                        {{ transport.originInstitution?.name }} → {{ transport.destinationInstitution?.name }}
+                      </div>
+                      <div matListItemLine>
+                        Method: {{ transport.transportMethod | titlecase }} |
+                        Departure: {{ transport.departureTime | date:'short' }} |
+                        ETA: {{ transport.estimatedArrivalTime | date:'short' }}
+                      </div>
+                      <div matListItemMeta>
+                        <mat-chip-option 
+                          [color]="transport.status === 'delivered' ? 'primary' : transport.status === 'in-transit' ? 'accent' : transport.status === 'delayed' ? 'warn' : ''" 
+                          selected>
+                          {{ transport.status | titlecase }}
+                        </mat-chip-option>
+                      </div>
+                    </mat-list-item>
+                  </mat-list>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>

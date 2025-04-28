@@ -1,0 +1,96 @@
+<!-- src/app/features/compatibility/compatibility-form/compatibility-form.component.html -->
+<div class="compatibility-form-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ isEditing ? 'Edit Compatibility Record' : 'Create Compatibility Match' }}</mat-card-title>
+      </mat-card-header>
+      
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+      
+      <mat-card-content *ngIf="!isLoading">
+        <form [formGroup]="compatibilityForm" (ngSubmit)="onSubmit()" class="form">
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Organ</mat-label>
+              <mat-select formControlName="organId">
+                <mat-option *ngFor="let organ of availableOrgans" [value]="organ.id">
+                  {{ getOrganName(organ) }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="compatibilityForm.get('organId')?.hasError('required')">
+                Organ is required
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Receiver</mat-label>
+              <mat-select formControlName="receiverId">
+                <mat-option *ngFor="let receiver of waitingReceivers" [value]="receiver.id" [class]="getReceiverUrgencyClass(receiver)">
+                  {{ getReceiverName(receiver) }} (Urgency: {{ receiver.urgencyStatus }})
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="compatibilityForm.get('receiverId')?.hasError('required')">
+                Receiver is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="score-section">
+            <div class="score-header">
+              <h3>Compatibility Score</h3>
+              <button type="button" mat-stroked-button color="primary" (click)="generateCompatibilityScore()">
+                <mat-icon>autorenew</mat-icon> Generate Score
+              </button>
+            </div>
+            
+            <div class="score-slider">
+              <mat-slider min="0" max="100" step="1" discrete>
+                <input matSliderThumb formControlName="compatibilityScore">
+              </mat-slider>
+              <div class="score-value" [ngClass]="
+                compatibilityForm.get('compatibilityScore')?.value >= 80 ? 'score-high' :
+                compatibilityForm.get('compatibilityScore')?.value >= 60 ? 'score-medium' : 'score-low'
+              ">
+                {{ compatibilityForm.get('compatibilityScore')?.value }}%
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="compatibilityForm.get('status')?.hasError('required')">
+                Status is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes</mat-label>
+              <textarea matInput formControlName="notes" rows="4" placeholder="Enter any notes about this match"></textarea>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-actions">
+            <button mat-button type="button" (click)="cancel()">Cancel</button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="compatibilityForm.invalid || isSaving">
+              {{ isEditing ? 'Update' : 'Create' }}
+              <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>

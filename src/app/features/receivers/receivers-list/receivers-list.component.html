@@ -1,0 +1,147 @@
+<!-- src/app/features/receivers/receivers-list/receivers-list.component.html -->
+<div class="receivers-list-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Receivers</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Filters -->
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filters-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="Filter by first name">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Filter by last name">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Blood Type</mat-label>
+              <mat-select formControlName="bloodType">
+                <mat-option value="">All Blood Types</mat-option>
+                <mat-option *ngFor="let type of bloodTypes" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Urgency Status</mat-label>
+              <mat-select formControlName="urgencyStatus">
+                <mat-option value="">All Urgency Levels</mat-option>
+                <mat-option *ngFor="let level of urgencyLevels" [value]="level.value">
+                  {{ level.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          
+          <div class="filter-actions">
+            <button mat-raised-button color="primary" (click)="resetFilters()">
+              <mat-icon>clear</mat-icon> Reset Filters
+            </button>
+          </div>
+        </form>
+        
+        <!-- Actions -->
+        <div class="table-actions">
+          <button mat-raised-button color="primary" routerLink="/receivers/new">
+            <mat-icon>add</mat-icon> Add Receiver
+          </button>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container" *ngIf="!isLoading">
+          <table mat-table [dataSource]="receivers" class="mat-elevation-z2">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Patient Name</th>
+              <td mat-cell *matCellDef="let receiver">{{ receiver.firstName }} {{ receiver.lastName }}</td>
+            </ng-container>
+            
+            <!-- Blood Type Column -->
+            <ng-container matColumnDef="bloodType">
+              <th mat-header-cell *matHeaderCellDef>Blood Type</th>
+              <td mat-cell *matCellDef="let receiver">{{ receiver.bloodType }}</td>
+            </ng-container>
+            
+            <!-- Urgency Status Column -->
+            <ng-container matColumnDef="urgencyStatus">
+              <th mat-header-cell *matHeaderCellDef>Urgency</th>
+              <td mat-cell *matCellDef="let receiver">
+                <mat-chip-option [color]="getUrgencyColor(receiver.urgencyStatus)" selected>
+                  {{ getUrgencyLabel(receiver.urgencyStatus) }}
+                </mat-chip-option>
+              </td>
+            </ng-container>
+            
+            <!-- Registration Date Column -->
+            <ng-container matColumnDef="registrationDate">
+              <th mat-header-cell *matHeaderCellDef>Registration Date</th>
+              <td mat-cell *matCellDef="let receiver">{{ receiver.registrationDate | date }}</td>
+            </ng-container>
+            
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let receiver">
+                <mat-chip-option [color]="getStatusColor(receiver.status)" selected>
+                  {{ receiver.status | titlecase }}
+                </mat-chip-option>
+              </td>
+            </ng-container>
+            
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let receiver">
+                <button mat-icon-button color="primary" [routerLink]="['/receivers', receiver.id]">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" [routerLink]="['/receivers', receiver.id, 'edit']">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteReceiver(receiver)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          
+          <!-- No data row -->
+          <div *ngIf="receivers.length === 0" class="no-data-row">
+            No receivers found.
+          </div>
+          
+          <!-- Paginator -->
+          <mat-paginator
+            [length]="totalItems"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="pageIndex"
+            (page)="onPageChange($event)">
+          </mat-paginator>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
