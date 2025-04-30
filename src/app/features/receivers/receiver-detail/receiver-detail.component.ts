@@ -34,28 +34,28 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     MatTabsModule,
     MatDividerModule,
     MatTableModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
   ],
   templateUrl: './receiver-detail.component.html',
-  styleUrls: ['./receiver-detail.component.scss']
+  styleUrls: ['./receiver-detail.component.scss'],
 })
 export class ReceiverDetailComponent implements OnInit {
   receiver: Receiver | null = null;
   isLoading = true;
   error = false;
-  
+
   // Potential matches display columns
   matchesColumns: string[] = ['organ', 'score', 'status', 'date'];
-  
+
   // Urgency levels map for display
   urgencyLevels: { [key: number]: string } = {
     1: 'Critical',
     2: 'Urgent',
     3: 'Standard',
     4: 'Stable',
-    5: 'Low Priority'
+    5: 'Low Priority',
   };
-  
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -63,7 +63,7 @@ export class ReceiverDetailComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -72,11 +72,11 @@ export class ReceiverDetailComponent implements OnInit {
       this.router.navigate(['/receivers']);
     }
   }
-  
+
   loadReceiver(id: number): void {
     this.isLoading = true;
     this.error = false;
-    
+
     this.receiversService.getReceiver(id).subscribe({
       next: (receiver) => {
         this.receiver = receiver;
@@ -85,39 +85,45 @@ export class ReceiverDetailComponent implements OnInit {
       error: () => {
         this.isLoading = false;
         this.error = true;
-        this.snackBar.open('Error loading receiver details', 'Close', { duration: 5000 });
-      }
+        this.snackBar.open('Error loading receiver details', 'Close', {
+          duration: 5000,
+        });
+      },
     });
   }
-  
+
   deleteReceiver(): void {
     if (!this.receiver) return;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Confirm Deletion',
         message: `Are you sure you want to delete ${this.receiver.firstName} ${this.receiver.lastName}?`,
         confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
-      }
+        cancelButtonText: 'Cancel',
+      },
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
+
+    dialogRef.afterClosed().subscribe((result) => {
       if (result && this.receiver?.id) {
         this.receiversService.deleteReceiver(this.receiver.id).subscribe({
           next: () => {
-            this.snackBar.open('Receiver deleted successfully', 'Close', { duration: 5000 });
+            this.snackBar.open('Receiver deleted successfully', 'Close', {
+              duration: 5000,
+            });
             this.router.navigate(['/receivers']);
           },
           error: () => {
-            this.snackBar.open('Error deleting receiver', 'Close', { duration: 5000 });
-          }
+            this.snackBar.open('Error deleting receiver', 'Close', {
+              duration: 5000,
+            });
+          },
         });
       }
     });
   }
-  
+
   calculateAge(dateOfBirth: Date): number {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -128,27 +134,45 @@ export class ReceiverDetailComponent implements OnInit {
     }
     return age;
   }
-  
-  getUrgencyColor(urgencyStatus: number): string {
+
+  getUrgencyColor(urgencyStatus: number | undefined): string {
+    if (urgencyStatus === undefined) return '';
+
     switch (urgencyStatus) {
-      case 1: return 'accent'; // Critical
-      case 2: return 'warn';   // Urgent
-      case 3: return 'primary'; // Standard
-      default: return '';
+      case 1:
+        return 'accent'; // Critical
+      case 2:
+        return 'warn'; // Urgent
+      case 3:
+        return 'primary'; // Standard
+      default:
+        return '';
     }
   }
-  
+
+  getUrgencyText(urgencyStatus: number | undefined): string {
+    if (urgencyStatus === undefined) return 'Unknown';
+
+    return this.urgencyLevels[urgencyStatus] || 'Unknown';
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
-      case 'waiting': return 'primary';
-      case 'matched': return 'accent';
-      case 'transplanted': return 'primary';
-      case 'inactive': return '';
-      case 'deceased': return 'warn';
-      default: return '';
+      case 'waiting':
+        return 'primary';
+      case 'matched':
+        return 'accent';
+      case 'transplanted':
+        return 'primary';
+      case 'inactive':
+        return '';
+      case 'deceased':
+        return 'warn';
+      default:
+        return '';
     }
   }
-  
+
   getCompatibilityScoreClass(score: number): string {
     if (score >= 80) return 'score-high';
     if (score >= 60) return 'score-medium';

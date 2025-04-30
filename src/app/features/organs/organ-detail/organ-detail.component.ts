@@ -32,16 +32,16 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     MatChipsModule,
     MatTabsModule,
     MatDividerModule,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
   ],
   templateUrl: './organ-detail.component.html',
-  styleUrls: ['./organ-detail.component.scss']
+  styleUrls: ['./organ-detail.component.scss'],
 })
 export class OrganDetailComponent implements OnInit {
   organ: Organ | null = null;
   isLoading = true;
   error = false;
-  
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -49,7 +49,7 @@ export class OrganDetailComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -58,11 +58,11 @@ export class OrganDetailComponent implements OnInit {
       this.router.navigate(['/organs']);
     }
   }
-  
+
   loadOrgan(id: number): void {
     this.isLoading = true;
     this.error = false;
-    
+
     this.organsService.getOrgan(id).subscribe({
       next: (organ) => {
         this.organ = organ;
@@ -71,98 +71,117 @@ export class OrganDetailComponent implements OnInit {
       error: () => {
         this.isLoading = false;
         this.error = true;
-        this.snackBar.open('Error loading organ details', 'Close', { duration: 5000 });
-      }
+        this.snackBar.open('Error loading organ details', 'Close', {
+          duration: 5000,
+        });
+      },
     });
   }
-  
+
   deleteOrgan(): void {
     if (!this.organ) return;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Confirm Deletion',
         message: `Are you sure you want to delete this ${this.organ.type} organ?`,
         confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
-      }
+        cancelButtonText: 'Cancel',
+      },
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
+
+    dialogRef.afterClosed().subscribe((result) => {
       if (result && this.organ?.id) {
         this.organsService.deleteOrgan(this.organ.id).subscribe({
           next: () => {
-            this.snackBar.open('Organ deleted successfully', 'Close', { duration: 5000 });
+            this.snackBar.open('Organ deleted successfully', 'Close', {
+              duration: 5000,
+            });
             this.router.navigate(['/organs']);
           },
           error: () => {
-            this.snackBar.open('Error deleting organ', 'Close', { duration: 5000 });
-          }
+            this.snackBar.open('Error deleting organ', 'Close', {
+              duration: 5000,
+            });
+          },
         });
       }
     });
   }
-  
-  getConditionColor(condition: string): string {
+
+  getConditionColor(condition: string | undefined): string {
+    if (!condition) return '';
+
     switch (condition) {
-      case 'excellent': return 'primary';
-      case 'good': return 'primary';
-      case 'fair': return 'accent';
-      case 'poor': return 'warn';
-      default: return '';
+      case 'excellent':
+        return 'primary';
+      case 'good':
+        return 'primary';
+      case 'fair':
+        return 'accent';
+      case 'poor':
+        return 'warn';
+      default:
+        return '';
     }
   }
-  
+
   getStatusColor(status: string): string {
     switch (status) {
-      case 'available': return 'primary';
-      case 'matched': return 'accent';
-      case 'in-transit': return 'warn';
-      case 'transplanted': return 'primary';
-      case 'expired': return '';
-      default: return '';
+      case 'available':
+        return 'primary';
+      case 'matched':
+        return 'accent';
+      case 'in-transit':
+        return 'warn';
+      case 'transplanted':
+        return 'primary';
+      case 'expired':
+        return '';
+      default:
+        return '';
     }
   }
-  
-  getRemainingTime(expirationDate: string): string {
+
+  getRemainingTime(expirationDate: Date): string {
     if (!expirationDate) return 'N/A';
-    
+
     const expiration = new Date(expirationDate);
     const now = new Date();
-    
+
     if (expiration <= now) {
       return 'Expired';
     }
-    
+
     const diffMs = expiration.getTime() - now.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (diffHours > 24) {
       const diffDays = Math.floor(diffHours / 24);
       return `${diffDays} days, ${diffHours % 24} hours`;
     }
-    
+
     return `${diffHours} hours, ${diffMinutes} minutes`;
   }
-  
-  isExpiringSoon(expirationDate: string): boolean {
+
+  isExpiringSoon(expirationDate: Date): boolean {
     if (!expirationDate) return false;
-    
+
     const expiration = new Date(expirationDate);
     const now = new Date();
     const diffMs = expiration.getTime() - now.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
-    
+
     return diffHours > 0 && diffHours <= 6;
   }
-  
+
   getDonorName(organ: Organ): string {
     if (!organ.donor) return 'Unknown';
     return `${organ.donor.firstName} ${organ.donor.lastName}`;
   }
-  
+
   getCompatibilityScoreClass(score: number): string {
     if (score >= 80) return 'score-high';
     if (score >= 60) return 'score-medium';

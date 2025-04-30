@@ -1,0 +1,26 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+
+mat-card {
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}

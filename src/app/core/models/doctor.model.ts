@@ -1,3 +1,5 @@
+import { Institution } from './institution.model';
+
 export interface Doctor {
   id?: number;
   firstName: string;

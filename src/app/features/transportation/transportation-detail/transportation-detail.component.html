@@ -1,0 +1,122 @@
+<div class="container">
+    <div class="header-actions">
+        <button mat-icon-button matTooltip="Back to list" routerLink="/transportation">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Transportation Details</h1>
+        <div class="spacer"></div>
+        <button mat-raised-button color="primary" [routerLink]="['/transportation', id, 'edit']" *ngIf="transportation">
+            <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteTransportation()" *ngIf="transportation">
+            <mat-icon>delete</mat-icon> Delete
+        </button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading transportation details...</p>
+    </div>
+
+    <div *ngIf="error" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>Error loading transportation details</p>
+        <button mat-raised-button color="primary" (click)="loadTransportation()">Try Again</button>
+    </div>
+
+    <div *ngIf="transportation && !isLoading && !error" class="content">
+        <mat-card>
+            <mat-card-header>
+                <div mat-card-avatar>
+                    <mat-icon>{{ getTransportMethodIcon(transportation.transportMethod) }}</mat-icon>
+                </div>
+                <mat-card-title>
+                    <span *ngIf="transportation.organ">{{ transportation.organ.type || 'Unknown Organ' }}</span>
+                    <span *ngIf="!transportation.organ">Unknown Organ</span>
+                    <mat-chip-set>
+                        <mat-chip [color]="getStatusColor(transportation.status)"
+                            [ngClass]="{'overdue': isOverdue(transportation)}">
+                            {{ transportation.status | titlecase }}
+                            <mat-icon *ngIf="isOverdue(transportation)" color="warn">warning</mat-icon>
+                        </mat-chip>
+                    </mat-chip-set>
+                </mat-card-title>
+                <mat-card-subtitle>
+                    <span *ngIf="transportation.originInstitution">From: {{ transportation.originInstitution.name
+                        }}</span>
+                    <span *ngIf="!transportation.originInstitution">From: Unknown</span>
+                    <mat-icon>arrow_forward</mat-icon>
+                    <span *ngIf="transportation.destinationInstitution">To: {{
+                        transportation.destinationInstitution.name }}</span>
+                    <span *ngIf="!transportation.destinationInstitution">To: Unknown</span>
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <mat-divider></mat-divider>
+
+                <section class="info-section">
+                    <h2>Transportation Details</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Transport Method:</div>
+                        <div class="detail-value">
+                            <mat-icon>{{ getTransportMethodIcon(transportation.transportMethod) }}</mat-icon>
+                            {{ transportation.transportMethod | titlecase }}
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Transport Company:</div>
+                        <div class="detail-value">{{ transportation.transportCompany || 'Not specified' }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Tracking Number:</div>
+                        <div class="detail-value">{{ transportation.trackingNumber || 'Not specified' }}</div>
+                    </div>
+                </section>
+
+                <mat-divider></mat-divider>
+
+                <section class="info-section">
+                    <h2>Schedule Information</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Departure:</div>
+                        <div class="detail-value">{{ formatDate(transportation.departureTime) }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Estimated Arrival:</div>
+                        <div class="detail-value" [ngClass]="{'overdue-text': isOverdue(transportation)}">
+                            {{ formatDate(transportation.estimatedArrivalTime) }}
+                            <mat-icon *ngIf="isOverdue(transportation)" color="warn">warning</mat-icon>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Actual Arrival:</div>
+                        <div class="detail-value">{{ formatDate(transportation.actualArrivalTime) }}</div>
+                    </div>
+                </section>
+
+                <mat-divider></mat-divider>
+
+                <section class="info-section" *ngIf="transportation.organ">
+                    <h2>Organ Information</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Organ Type:</div>
+                        <div class="detail-value">{{ transportation.organ.type || 'Unknown' }}</div>
+                    </div>
+
+                    <div class="detail-row" *ngIf="transportation.organ.donor">
+                        <div class="detail-label">Donor Blood Type:</div>
+                        <div class="detail-value">{{ transportation.organ.donor.bloodType || 'Unknown' }}</div>
+                    </div>
+                </section>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

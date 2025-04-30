@@ -29,16 +29,15 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     MatListModule,
     MatChipsModule,
     MatDividerModule,
-    ConfirmDialogComponent
   ],
   templateUrl: './compatibility-detail.component.html',
-  styleUrls: ['./compatibility-detail.component.scss']
+  styleUrls: ['./compatibility-detail.component.scss'],
 })
 export class CompatibilityDetailComponent implements OnInit {
   compatibility: Compatibility | null = null;
   isLoading = true;
   error = false;
-  
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -46,7 +45,7 @@ export class CompatibilityDetailComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -55,11 +54,11 @@ export class CompatibilityDetailComponent implements OnInit {
       this.router.navigate(['/compatibility']);
     }
   }
-  
+
   loadCompatibilityRecord(id: number): void {
     this.isLoading = true;
     this.error = false;
-    
+
     this.compatibilityService.getCompatibilityRecord(id).subscribe({
       next: (compatibility) => {
         this.compatibility = compatibility;
@@ -68,69 +67,90 @@ export class CompatibilityDetailComponent implements OnInit {
       error: () => {
         this.isLoading = false;
         this.error = true;
-        this.snackBar.open('Error loading compatibility record', 'Close', { duration: 5000 });
-      }
+        this.snackBar.open('Error loading compatibility record', 'Close', {
+          duration: 5000,
+        });
+      },
     });
   }
-  
+
   deleteCompatibilityRecord(): void {
     if (!this.compatibility) return;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Confirm Deletion',
         message: `Are you sure you want to delete this compatibility record?`,
         confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
-      }
+        cancelButtonText: 'Cancel',
+      },
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
+
+    dialogRef.afterClosed().subscribe((result) => {
       if (result && this.compatibility?.id) {
-        this.compatibilityService.deleteCompatibilityRecord(this.compatibility.id).subscribe({
-          next: () => {
-            this.snackBar.open('Compatibility record deleted successfully', 'Close', { duration: 5000 });
-            this.router.navigate(['/compatibility']);
-          },
-          error: () => {
-            this.snackBar.open('Error deleting compatibility record', 'Close', { duration: 5000 });
-          }
-        });
+        this.compatibilityService
+          .deleteCompatibilityRecord(this.compatibility.id)
+          .subscribe({
+            next: () => {
+              this.snackBar.open(
+                'Compatibility record deleted successfully',
+                'Close',
+                { duration: 5000 }
+              );
+              this.router.navigate(['/compatibility']);
+            },
+            error: () => {
+              this.snackBar.open(
+                'Error deleting compatibility record',
+                'Close',
+                { duration: 5000 }
+              );
+            },
+          });
       }
     });
   }
-  
+
   getStatusColor(status: string): string {
     switch (status) {
-      case 'potential': return '';
-      case 'confirmed': return 'primary';
-      case 'rejected': return 'warn';
-      case 'completed': return 'accent';
-      default: return '';
+      case 'potential':
+        return '';
+      case 'confirmed':
+        return 'primary';
+      case 'rejected':
+        return 'warn';
+      case 'completed':
+        return 'accent';
+      default:
+        return '';
     }
   }
-  
+
   getScoreClass(score: number): string {
     if (score >= 80) return 'score-high';
     if (score >= 60) return 'score-medium';
     return 'score-low';
   }
-  
+
   getUrgencyClass(urgencyStatus: number): string {
     switch (urgencyStatus) {
-      case 1: return 'urgency-critical';
-      case 2: return 'urgency-urgent';
-      default: return '';
+      case 1:
+        return 'urgency-critical';
+      case 2:
+        return 'urgency-urgent';
+      default:
+        return '';
     }
   }
-  
+
   proceedToTransplant(): void {
-    if (!this.compatibility || this.compatibility.status !== 'confirmed') return;
-    
+    if (!this.compatibility || this.compatibility.status !== 'confirmed')
+      return;
+
     // In a real application, navigate to transplant procedure creation with pre-filled data
-    this.router.navigate(['/transplant-procedures/new'], { 
-      queryParams: { compatibilityId: this.compatibility.id } 
+    this.router.navigate(['/transplant-procedures/new'], {
+      queryParams: { compatibilityId: this.compatibility.id },
     });
   }
 }

@@ -1,0 +1,170 @@
+<div class="container">
+    <div class="header-actions">
+        <button mat-icon-button matTooltip="Back to list" routerLink="/transplant-procedures">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Transplant Procedure Details</h1>
+        <div class="spacer"></div>
+        <button mat-raised-button color="primary" [routerLink]="['/transplant-procedures', id, 'edit']"
+            *ngIf="procedure">
+            <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteProcedure()" *ngIf="procedure">
+            <mat-icon>delete</mat-icon> Delete
+        </button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading transplant procedure details...</p>
+    </div>
+
+    <div *ngIf="error" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>Error loading transplant procedure details</p>
+        <button mat-raised-button color="primary" (click)="loadProcedure()">Try Again</button>
+    </div>
+
+    <div *ngIf="procedure && !isLoading && !error" class="content">
+        <mat-card>
+            <mat-card-header>
+                <div mat-card-avatar>
+                    <mat-icon>medical_services</mat-icon>
+                </div>
+                <mat-card-title>
+                    <span *ngIf="procedure.organ">{{ procedure.organ.type }} Transplant</span>
+                    <span *ngIf="!procedure.organ">Organ Transplant</span>
+                    <mat-chip-set>
+                        <mat-chip [color]="getStatusColor(procedure.status)">
+                            {{ procedure.status | titlecase }}
+                        </mat-chip>
+                        <mat-chip *ngIf="procedure.outcome" [color]="getOutcomeColor(procedure.outcome)">
+                            {{ procedure.outcome | titlecase }}
+                        </mat-chip>
+                    </mat-chip-set>
+                </mat-card-title>
+                <mat-card-subtitle>
+                    <span *ngIf="procedure.institution">{{ procedure.institution.name }}</span>
+                    <span *ngIf="!procedure.institution">Unknown Institution</span>
+                    <span *ngIf="procedure.leadDoctor"> • Dr. {{ procedure.leadDoctor.firstName }} {{
+                        procedure.leadDoctor.lastName }}</span>
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <mat-divider></mat-divider>
+
+                <section class="info-section">
+                    <h2>Procedure Schedule</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Scheduled Date:</div>
+                        <div class="detail-value">{{ formatDate(procedure.scheduledDate) }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Actual Date:</div>
+                        <div class="detail-value">{{ formatDate(procedure.actualDate) }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Duration:</div>
+                        <div class="detail-value">{{ formatDuration(procedure.durationMinutes) }}</div>
+                    </div>
+                </section>
+
+                <mat-divider></mat-divider>
+
+                <section class="info-section">
+                    <h2>Participants</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Lead Doctor:</div>
+                        <div class="detail-value" *ngIf="procedure.leadDoctor">
+                            <mat-icon>person</mat-icon>
+                            Dr. {{ procedure.leadDoctor.firstName }} {{ procedure.leadDoctor.lastName }}
+                            <span *ngIf="procedure.leadDoctor.specialty">({{ procedure.leadDoctor.specialty }})</span>
+                        </div>
+                        <div class="detail-value" *ngIf="!procedure.leadDoctor">Not assigned</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Institution:</div>
+                        <div class="detail-value" *ngIf="procedure.institution">
+                            <mat-icon>local_hospital</mat-icon>
+                            {{ procedure.institution.name }}
+                        </div>
+                        <div class="detail-value" *ngIf="!procedure.institution">Not specified</div>
+                    </div>
+                </section>
+
+                <mat-divider></mat-divider>
+
+                <section class="info-section" *ngIf="procedure.receiver">
+                    <h2>Receiver Information</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Patient:</div>
+                        <div class="detail-value">
+                            {{ procedure.receiver.firstName }} {{ procedure.receiver.lastName }}
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Blood Type:</div>
+                        <div class="detail-value">{{ procedure.receiver.bloodType }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Medical ID:</div>
+                        <div class="detail-value">{{ procedure.receiver.medicalId || 'N/A' }}</div>
+                    </div>
+                </section>
+
+                <mat-divider *ngIf="procedure.receiver"></mat-divider>
+
+                <section class="info-section" *ngIf="procedure.organ">
+                    <h2>Organ Information</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Organ Type:</div>
+                        <div class="detail-value">{{ procedure.organ.type }}</div>
+                    </div>
+
+                    <div class="detail-row" *ngIf="procedure.organ.donorId">
+                        <div class="detail-label">Donor Blood Type:</div>
+                        <div class="detail-value">{{ procedure.organ.donor?.bloodType || 'Unknown' }}</div>
+                    </div>
+                </section>
+
+                <mat-divider *ngIf="procedure.compatibility"></mat-divider>
+
+                <section class="info-section" *ngIf="procedure.compatibility">
+                    <h2>Compatibility Information</h2>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Match Score:</div>
+                        <div class="detail-value">{{ procedure.compatibility.matchScore }}%</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">HLA Match:</div>
+                        <div class="detail-value">{{ procedure.compatibility.hlaMatch || 'N/A' }}</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">Cross-Match:</div>
+                        <div class="detail-value">{{ procedure.compatibility.crossMatchResult || 'N/A' }}</div>
+                    </div>
+                </section>
+
+                <mat-divider></mat-divider>
+
+                <section class="info-section" *ngIf="procedure.notes">
+                    <h2>Notes</h2>
+                    <p class="procedure-notes">{{ procedure.notes }}</p>
+                </section>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

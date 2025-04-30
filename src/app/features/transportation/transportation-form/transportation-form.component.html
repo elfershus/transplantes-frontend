@@ -1,0 +1,148 @@
+<div class="container">
+    <div class="header-actions">
+        <button mat-icon-button matTooltip="Back to list" routerLink="/transportation">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ editMode ? 'Edit' : 'New' }} Transportation</h1>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading transportation data...</p>
+    </div>
+
+    <div *ngIf="!isLoading" class="content">
+        <form [formGroup]="transportationForm" (ngSubmit)="onSubmit()">
+            <mat-card>
+                <mat-card-content>
+                    <div class="form-row">
+                        <h2>Organ Information</h2>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Organ</mat-label>
+                            <mat-select formControlName="organId" required>
+                                <mat-option *ngFor="let organ of organs" [value]="organ.id">
+                                    {{ organ.name }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="getFormControlError('organId')">
+                                {{ getFormControlError('organId') }}
+                            </mat-error>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-row institution-row">
+                        <h2>Institution Information</h2>
+                        <div class="form-row-split">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Origin Institution</mat-label>
+                                <mat-select formControlName="originInstitutionId" required>
+                                    <mat-option *ngFor="let institution of institutions" [value]="institution.id">
+                                        {{ institution.name }}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-error *ngIf="getFormControlError('originInstitutionId')">
+                                    {{ getFormControlError('originInstitutionId') }}
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Destination Institution</mat-label>
+                                <mat-select formControlName="destinationInstitutionId" required>
+                                    <mat-option *ngFor="let institution of institutions" [value]="institution.id">
+                                        {{ institution.name }}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-error *ngIf="getFormControlError('destinationInstitutionId')">
+                                    {{ getFormControlError('destinationInstitutionId') }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <h2>Schedule Information</h2>
+                        <div class="form-row-split">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Departure Time</mat-label>
+                                <input matInput [matDatepicker]="departurePicker" formControlName="departureTime"
+                                    required>
+                                <mat-datepicker-toggle matIconSuffix [for]="departurePicker"></mat-datepicker-toggle>
+                                <mat-datepicker #departurePicker></mat-datepicker>
+                                <mat-error *ngIf="getFormControlError('departureTime')">
+                                    {{ getFormControlError('departureTime') }}
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Estimated Arrival Time</mat-label>
+                                <input matInput [matDatepicker]="estimatedArrivalPicker"
+                                    formControlName="estimatedArrivalTime" required>
+                                <mat-datepicker-toggle matIconSuffix
+                                    [for]="estimatedArrivalPicker"></mat-datepicker-toggle>
+                                <mat-datepicker #estimatedArrivalPicker></mat-datepicker>
+                                <mat-error *ngIf="getFormControlError('estimatedArrivalTime')">
+                                    {{ getFormControlError('estimatedArrivalTime') }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Actual Arrival Time</mat-label>
+                            <input matInput [matDatepicker]="actualArrivalPicker" formControlName="actualArrivalTime">
+                            <mat-datepicker-toggle matIconSuffix [for]="actualArrivalPicker"></mat-datepicker-toggle>
+                            <mat-datepicker #actualArrivalPicker></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-row">
+                        <h2>Transportation Details</h2>
+                        <div class="form-row-split">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Transport Method</mat-label>
+                                <mat-select formControlName="transportMethod" required>
+                                    <mat-option *ngFor="let method of transportMethods" [value]="method">
+                                        {{ method | titlecase }}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-error *ngIf="getFormControlError('transportMethod')">
+                                    {{ getFormControlError('transportMethod') }}
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Status</mat-label>
+                                <mat-select formControlName="status" required>
+                                    <mat-option *ngFor="let status of statuses" [value]="status">
+                                        {{ status | titlecase }}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-error *ngIf="getFormControlError('status')">
+                                    {{ getFormControlError('status') }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row-split">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Transport Company</mat-label>
+                                <input matInput formControlName="transportCompany">
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Tracking Number</mat-label>
+                                <input matInput formControlName="trackingNumber">
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                    <button mat-button type="button" routerLink="/transportation">Cancel</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
+                        {{ isSubmitting ? 'Saving...' : (editMode ? 'Update' : 'Create') }}
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        </form>
+    </div>
+</div>
